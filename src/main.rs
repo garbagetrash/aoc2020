@@ -27,6 +27,11 @@ fn main() {
                 println!("Day 1 Part 2 Solution {:?}", day01::part2(&input));
             }));
         }
+        1 => {
+            let input = day01::load_input();
+            println!("Day 1 Part 1 Solution {:?}", day01::part1(&input));
+            println!("Day 1 Part 2 Solution {:?}", day01::part2(&input));
+        },
         _ => println!("Day {} not yet implemented", day),
     }
 }
