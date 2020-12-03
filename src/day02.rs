@@ -9,8 +9,8 @@ pub struct Entry {
     password: String,
 }
 
-pub fn load_input() -> Vec<Entry> {
-    let buf = read_to_string("inputs/day02.txt").unwrap();
+pub fn load_input(filename: &str) -> Vec<Entry> {
+    let buf = read_to_string(filename).unwrap();
 
     let re = Regex::new(r"(\d+)-(\d+) ([a-z]): ([a-z]+)").unwrap();
     let mut output = vec![];
@@ -74,51 +74,13 @@ mod test {
 
     #[test]
     fn test_part1() {
-        let input = vec![
-            Entry {
-                min: 1,
-                max: 3,
-                letter: String::from("a"),
-                password: String::from("abcde"),
-            },
-            Entry {
-                min: 1,
-                max: 3,
-                letter: String::from("b"),
-                password: String::from("cdefg"),
-            },
-            Entry {
-                min: 2,
-                max: 9,
-                letter: String::from("c"),
-                password: String::from("ccccccccc"),
-            },
-        ];
-        assert_eq!(part1(&input), 2);
+        let x = load_input("inputs/02a.txt");
+        assert_eq!(part1(&x), 2);
     }
 
     #[test]
     fn test_part2() {
-        let input = vec![
-            Entry {
-                min: 1,
-                max: 3,
-                letter: String::from("a"),
-                password: String::from("abcde"),
-            },
-            Entry {
-                min: 1,
-                max: 3,
-                letter: String::from("b"),
-                password: String::from("cdefg"),
-            },
-            Entry {
-                min: 2,
-                max: 9,
-                letter: String::from("c"),
-                password: String::from("ccccccccc"),
-            },
-        ];
-        assert_eq!(part2(&input), 1);
+        let x = load_input("inputs/02a.txt");
+        assert_eq!(part2(&x), 1);
     }
 }

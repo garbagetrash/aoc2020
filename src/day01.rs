@@ -1,7 +1,7 @@
 use std::fs::read_to_string;
 
-pub fn load_input() -> Vec<u64> {
-    let buf = read_to_string("inputs/day01.txt").unwrap();
+pub fn load_input(filename: &str) -> Vec<u64> {
+    let buf = read_to_string(filename).unwrap();
 
     let mut output = vec![];
     for line in buf.lines() {
@@ -42,13 +42,13 @@ mod test {
 
     #[test]
     fn test_part1() {
-        let input = vec![1721, 979, 366, 299, 675, 1456];
+        let input = load_input("inputs/01a.txt");
         assert_eq!(part1(&input), 514579);
     }
 
     #[test]
     fn test_part2() {
-        let input = vec![1721, 979, 366, 299, 675, 1456];
+        let input = load_input("inputs/01a.txt");
         assert_eq!(part2(&input), 241861950);
     }
 }
