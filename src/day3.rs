@@ -1,16 +1,14 @@
 #![allow(clippy::many_single_char_names)]
-use std::fs::read_to_string;
 
 pub enum Tile {
     Open,
     Tree,
 }
 
-pub fn load_input(filename: &str) -> Vec<Vec<Tile>> {
-    let buf = read_to_string(filename).unwrap();
-
+#[aoc_generator(day3)]
+pub fn load_input(input: &str) -> Vec<Vec<Tile>> {
     let mut output = vec![];
-    for line in buf.lines() {
+    for line in input.lines() {
         let mut outline = vec![];
         for c in line.chars() {
             if c == '.' {
@@ -40,10 +38,12 @@ pub fn doit(input: &[Vec<Tile>], right: usize, down: usize) -> usize {
     treecntr
 }
 
+#[aoc(day3, part1)]
 pub fn part1(input: &[Vec<Tile>]) -> usize {
     doit(input, 3, 1)
 }
 
+#[aoc(day3, part2)]
 pub fn part2(input: &[Vec<Tile>]) -> usize {
 
     let a = doit(input, 1, 1);
@@ -57,16 +57,19 @@ pub fn part2(input: &[Vec<Tile>]) -> usize {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::fs::read_to_string;
 
     #[test]
     fn test_part1() {
-        let input = load_input("inputs/03a.txt");
+        let input = read_to_string("input/03a.txt").unwrap();
+        let input = load_input(&input);
         assert_eq!(doit(&input, 3, 1), 7);
     }
 
     #[test]
     fn test_part2() {
-        let input = load_input("inputs/03a.txt");
+        let input = read_to_string("input/03a.txt").unwrap();
+        let input = load_input(&input);
         let a = doit(&input, 1, 1);
         let b = doit(&input, 3, 1);
         let c = doit(&input, 5, 1);

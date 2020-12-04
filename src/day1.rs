@@ -1,15 +1,13 @@
-use std::fs::read_to_string;
-
-pub fn load_input(filename: &str) -> Vec<u64> {
-    let buf = read_to_string(filename).unwrap();
-
+#[aoc_generator(day1)]
+pub fn load_input(input: &str) -> Vec<u64> {
     let mut output = vec![];
-    for line in buf.lines() {
+    for line in input.lines() {
         output.push(line.parse().unwrap());
     }
     output
 }
 
+#[aoc(day1, part1)]
 pub fn part1(input: &[u64]) -> u64 {
     for v1 in input {
         for v2 in input {
@@ -22,6 +20,7 @@ pub fn part1(input: &[u64]) -> u64 {
     0
 }
 
+#[aoc(day1, part2)]
 pub fn part2(input: &[u64]) -> u64 {
     for v1 in input {
         for v2 in input {
@@ -39,16 +38,19 @@ pub fn part2(input: &[u64]) -> u64 {
 #[cfg(test)]
 mod test {
     use super::*;
+    use std::fs::read_to_string;
 
     #[test]
     fn test_part1() {
-        let input = load_input("inputs/01a.txt");
+        let input = read_to_string("input/01a.txt").unwrap();
+        let input = load_input(&input);
         assert_eq!(part1(&input), 514579);
     }
 
     #[test]
     fn test_part2() {
-        let input = load_input("inputs/01a.txt");
+        let input = read_to_string("input/01a.txt").unwrap();
+        let input = load_input(&input);
         assert_eq!(part2(&input), 241861950);
     }
 }
