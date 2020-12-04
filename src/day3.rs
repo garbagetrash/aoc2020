@@ -31,7 +31,9 @@ pub fn doit(input: &[Vec<Tile>], right: usize, down: usize) -> usize {
     let mut right_cnt = 0;
     let mut i = 0;
     while i < height {
-        if let Tile::Tree = input[i][right_cnt % width] { treecntr += 1 };
+        if let Tile::Tree = input[i][right_cnt % width] {
+            treecntr += 1
+        };
         right_cnt += right;
         i += down;
     }
@@ -45,7 +47,6 @@ pub fn part1(input: &[Vec<Tile>]) -> usize {
 
 #[aoc(day3, part2)]
 pub fn part2(input: &[Vec<Tile>]) -> usize {
-
     let a = doit(input, 1, 1);
     let b = doit(input, 3, 1);
     let c = doit(input, 5, 1);
