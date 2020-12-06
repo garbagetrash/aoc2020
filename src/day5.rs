@@ -38,7 +38,7 @@ pub fn part1(input: &[u32]) -> u32 {
 #[aoc(day5, part2)]
 pub fn part2(input: &[u32]) -> u32 {
     let mut input_copy = input.clone().to_vec();
-    input_copy.sort();
+    input_copy.sort_unstable();
 
     for i in *input_copy.first().unwrap()..*input_copy.last().unwrap() {
         if !(input_copy.iter().any(|x| *x == i)) {
