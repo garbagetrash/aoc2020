@@ -69,7 +69,7 @@ pub fn part2(input: &[u64]) -> u64 {
 
     let mut diffs = vec![];
     for i in 0..inclone.len() - 1 {
-        diffs.push(inclone[i+1] - inclone[i]);
+        diffs.push(inclone[i + 1] - inclone[i]);
     }
 
     let asdf = diffs.iter().map(|x| x.to_string()).collect::<Vec<_>>();

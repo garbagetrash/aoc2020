@@ -47,13 +47,12 @@ pub fn actual_code2(input: &[u64], cnt: usize) -> u64 {
         loop {
             let thesum = input[i..i + n_nums].iter().sum::<u64>();
             match thesum.cmp(&num) {
-
                 Ordering::Equal => {
                     let thelist = input[i..i + n_nums].to_vec();
                     let smallest = thelist.iter().min().unwrap();
                     let largest = thelist.iter().max().unwrap();
                     return smallest + largest;
-                },
+                }
                 Ordering::Less => n_nums += 1,
                 _ => break,
             }
