@@ -70,21 +70,17 @@ pub fn count_los_occupied(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>) ->
 
     for dir in dirs.iter() {
         let mut tempdir = *dir;
-        loop {
-            if let Some(t) = ferry.get(&(pos.0 + tempdir.0, pos.1 + tempdir.1)) {
-                match t {
-                    Tile::Occupied => {
-                        cnt += 1;
-                        break;
-                    }
-                    Tile::Empty => break,
-                    Tile::Floor => {
-                        tempdir.0 += dir.0;
-                        tempdir.1 += dir.1;
-                    }
+        while let Some(t) = ferry.get(&(pos.0 + tempdir.0, pos.1 + tempdir.1)) {
+            match t {
+                Tile::Occupied => {
+                    cnt += 1;
+                    break;
                 }
-            } else {
-                break;
+                Tile::Empty => break,
+                Tile::Floor => {
+                    tempdir.0 += dir.0;
+                    tempdir.1 += dir.1;
+                }
             }
         }
     }
@@ -92,7 +88,7 @@ pub fn count_los_occupied(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>) ->
     cnt
 }
 
-pub fn apply(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>, part_switch: &PartSwitch) -> Tile {
+pub fn apply(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>, part_switch: &PartSwitch) -> Option<Tile> {
     let count_occupied = match *part_switch {
         PartSwitch::Part1 => count_adjacent_occupied,
         PartSwitch::Part2 => count_los_occupied,
@@ -103,24 +99,20 @@ pub fn apply(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>, part_switch: &P
         PartSwitch::Part2 => 5,
     };
 
-    let mut new_tile = Tile::Empty;
+    let mut new_tile = None;
     if let Some(t) = ferry.get(&(pos.0, pos.1)) {
         match t {
             Tile::Empty => {
                 if count_occupied(pos, ferry) == 0 {
-                    new_tile = Tile::Occupied;
-                } else {
-                    new_tile = Tile::Empty;
+                    new_tile = Some(Tile::Occupied);
                 }
             }
             Tile::Occupied => {
                 if count_occupied(pos, ferry) >= num_seats {
-                    new_tile = Tile::Empty;
-                } else {
-                    new_tile = Tile::Occupied;
+                    new_tile = Some(Tile::Empty);
                 }
             }
-            _ => new_tile = *t,
+            _ => (),
         }
     }
     new_tile
@@ -139,10 +131,25 @@ pub fn apply_rules(
     ferry: &HashMap<(i32, i32), Tile>,
     part_switch: &PartSwitch,
 ) -> HashMap<(i32, i32), Tile> {
-    let mut new_ferry = HashMap::new();
-    for (pos, _tile) in ferry.iter() {
-        let new_tile = apply(*pos, &ferry, part_switch);
-        new_ferry.insert(*pos, new_tile);
+    let mut new_ferry = ferry.clone();
+    for (pos, tile) in ferry.iter() {
+        match tile {
+            Tile::Empty => {
+                if let Some(new_tile) = apply(*pos, &ferry, part_switch) {
+                    if let Some(x) = new_ferry.get_mut(pos) {
+                        *x = new_tile;
+                    }
+                }
+            }
+            Tile::Occupied => {
+                if let Some(new_tile) = apply(*pos, &ferry, part_switch) {
+                    if let Some(x) = new_ferry.get_mut(pos) {
+                        *x = new_tile;
+                    }
+                }
+            }
+            _ => (),
+        }
     }
     new_ferry
 }
