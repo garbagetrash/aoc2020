@@ -26,36 +26,17 @@ pub enum Tile {
     Occupied,
 }
 
+#[derive(PartialEq)]
 pub enum PartSwitch {
     Part1,
     Part2,
 }
 
-pub fn count_adjacent_occupied(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>) -> i32 {
-    let mut cnt = 0;
-    let dirs = [
-        (1, 0),
-        (-1, 0),
-        (0, 1),
-        (0, -1),
-        (-1, -1),
-        (1, -1),
-        (1, 1),
-        (-1, 1),
-    ];
-
-    for dir in dirs.iter() {
-        if let Some(t) = ferry.get(&(pos.0 + dir.0, pos.1 + dir.1)) {
-            if let Tile::Occupied = t {
-                cnt += 1;
-            }
-        }
-    }
-
-    cnt
-}
-
-pub fn count_los_occupied(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>) -> i32 {
+pub fn count_occupied(
+    pos: (i32, i32),
+    ferry: &HashMap<(i32, i32), Tile>,
+    part_switch: &PartSwitch,
+) -> i32 {
     let mut cnt = 0;
     let dirs = [
         (1, 0),
@@ -78,6 +59,9 @@ pub fn count_los_occupied(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>) ->
                 }
                 Tile::Empty => break,
                 Tile::Floor => {
+                    if *part_switch == PartSwitch::Part1 {
+                        break;
+                    }
                     tempdir.0 += dir.0;
                     tempdir.1 += dir.1;
                 }
@@ -88,12 +72,11 @@ pub fn count_los_occupied(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>) ->
     cnt
 }
 
-pub fn apply(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>, part_switch: &PartSwitch) -> Option<Tile> {
-    let count_occupied = match *part_switch {
-        PartSwitch::Part1 => count_adjacent_occupied,
-        PartSwitch::Part2 => count_los_occupied,
-    };
-
+pub fn apply(
+    pos: (i32, i32),
+    ferry: &HashMap<(i32, i32), Tile>,
+    part_switch: &PartSwitch,
+) -> Option<Tile> {
     let num_seats = match *part_switch {
         PartSwitch::Part1 => 4,
         PartSwitch::Part2 => 5,
@@ -103,12 +86,12 @@ pub fn apply(pos: (i32, i32), ferry: &HashMap<(i32, i32), Tile>, part_switch: &P
     if let Some(t) = ferry.get(&(pos.0, pos.1)) {
         match t {
             Tile::Empty => {
-                if count_occupied(pos, ferry) == 0 {
+                if count_occupied(pos, ferry, part_switch) == 0 {
                     new_tile = Some(Tile::Occupied);
                 }
             }
             Tile::Occupied => {
-                if count_occupied(pos, ferry) >= num_seats {
+                if count_occupied(pos, ferry, part_switch) >= num_seats {
                     new_tile = Some(Tile::Empty);
                 }
             }
