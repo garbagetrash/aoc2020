@@ -1,14 +1,13 @@
-use std::cmp::Ordering;
 use num::integer::lcm;
 
 #[derive(Copy, Clone, Debug)]
-pub struct Sched {
+pub struct Schedule {
     offset: i64,
     cycle: i64,
 }
 
 #[aoc_generator(day13)]
-pub fn load_input(input: &str) -> (i64, Vec<Sched>) {
+pub fn load_input(input: &str) -> (i64, Vec<Schedule>) {
     let lines: Vec<_> = input.lines().collect();
     let earliest: i64 = lines[0].parse().unwrap();
     let mut buses = vec![];
@@ -19,14 +18,17 @@ pub fn load_input(input: &str) -> (i64, Vec<Sched>) {
     for (i, id) in buses.iter().enumerate() {
         if id != "x" {
             let value = id.parse().unwrap();
-            scheds.push( Sched { offset: i as i64, cycle: value } );
+            scheds.push(Schedule {
+                offset: i as i64,
+                cycle: value,
+            });
         }
     }
     (earliest, scheds)
 }
 
 #[aoc(day13, part1)]
-pub fn part1(input: &(i64, Vec<Sched>)) -> i64 {
+pub fn part1(input: &(i64, Vec<Schedule>)) -> i64 {
     let mut time = input.0;
     let buses = &input.1;
     loop {
@@ -40,39 +42,31 @@ pub fn part1(input: &(i64, Vec<Sched>)) -> i64 {
     }
 }
 
-pub fn find_time(s0: &Sched, s1: &Sched) -> i64 {
-    let mut v0 = 0;
-    let mut v1 = 0;
+pub fn roll_schedules(base: &Schedule, new: &Schedule) -> Schedule {
+    let mut time = base.offset;
     loop {
-        match (v0 - s0.offset).cmp(&(v1 - s1.offset)) {
-            Ordering::Equal => return v0 - s0.offset,
-            Ordering::Less => v0 += s0.cycle,
-            Ordering::Greater => v1 += s1.cycle,
+        if (time + new.offset) % new.cycle == 0 {
+            return Schedule {
+                offset: time,
+                cycle: lcm(base.cycle, new.cycle),
+            };
+        } else {
+            time += base.cycle;
         }
     }
-}
-
-pub fn new_joint_sched(s0: Sched, s1: Sched) -> Sched {
-    let time = find_time(&s0, &s1);
-    let cycle = lcm(s0.cycle, s1.cycle);
-    Sched { offset: time, cycle }
 }
 
 #[aoc(day13, part2)]
-pub fn part2(input: &(i64, Vec<Sched>)) -> i64 {
-    let mut new_scheds = input.1.clone();
+pub fn part2(input: &(i64, Vec<Schedule>)) -> i64 {
+    let ans = input.1.iter().fold(
+        Schedule {
+            offset: 0,
+            cycle: 1,
+        },
+        |acc, x| roll_schedules(&acc, &x),
+    );
 
-    while new_scheds.len() > 1 {
-        let mut temp_scheds = vec![];
-        for i in 1..new_scheds.len() {
-            temp_scheds.push(new_joint_sched(new_scheds[0], new_scheds[i]));
-        }
-        new_scheds = temp_scheds;
-    }
-
-    let ans = new_scheds[0];
-
-    ans.cycle - ans.offset
+    ans.offset
 }
 
 #[cfg(test)]
@@ -95,7 +89,6 @@ mod test {
         let input = read_to_string("input/13b.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part2(&input), 3417);
-        /*  These all fail... But I got the challenge right so....?
         let input = read_to_string("input/13c.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part2(&input), 754018);
@@ -108,6 +101,5 @@ mod test {
         let input = read_to_string("input/13f.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part2(&input), 1202161486);
-        */
     }
 }
