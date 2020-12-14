@@ -1,6 +1,6 @@
 use regex::Regex;
 use std::collections::HashMap;
-use std::collections::VecDeque;
+use std::iter;
 
 #[derive(Debug)]
 pub enum Instruction {
@@ -97,16 +97,10 @@ pub fn part2(input: &[Instruction]) -> i64 {
                 let mut addr_list = vec![];
                 let mut addrs: Vec<String> = vec![];
                 for num in 0..2_i64.pow(float_cnt as u32) {
-                    let mut derp: VecDeque<char> = VecDeque::new();
-                    for _ in 0..float_cnt {
-                        derp.push_back('0');
-                    }
-                    let thing = format!("{:b}", num);
-                    for c in thing.chars() {
-                        derp.push_back(c);
-                        derp.pop_front();
-                    }
-                    addrs.push(derp.iter().map(|x| *x).into_iter().collect());
+                    let numstr = format!("{:b}", num);
+                    let nslen = float_cnt - numstr.chars().count();
+                    let new_addr = iter::repeat('0').take(nslen).chain(numstr.chars()).collect();
+                    addrs.push(new_addr);
                 }
 
                 for a in addrs {
