@@ -25,7 +25,7 @@ pub fn load_input(input: &str) -> Vec<Instruction> {
                     output.push(Instruction::Mem((loc, value)));
                 }
                 "mas" => {
-                    let mask = String::from(cap[2].to_string());
+                    let mask = cap[2].to_string();
                     output.push(Instruction::Mask(mask));
                 }
                 _ => (),
@@ -99,7 +99,10 @@ pub fn part2(input: &[Instruction]) -> i64 {
                 for num in 0..2_i64.pow(float_cnt as u32) {
                     let numstr = format!("{:b}", num);
                     let nslen = float_cnt - numstr.chars().count();
-                    let new_addr = iter::repeat('0').take(nslen).chain(numstr.chars()).collect();
+                    let new_addr = iter::repeat('0')
+                        .take(nslen)
+                        .chain(numstr.chars())
+                        .collect();
                     addrs.push(new_addr);
                 }
 

@@ -1,5 +1,5 @@
 #[aoc_generator(day1)]
-pub fn load_input(input: &str) -> Vec<u64> {
+pub fn load_input(input: &str) -> Vec<i64> {
     let mut output = vec![];
     for line in input.lines() {
         output.push(line.parse().unwrap());
@@ -8,12 +8,11 @@ pub fn load_input(input: &str) -> Vec<u64> {
 }
 
 #[aoc(day1, part1)]
-pub fn part1(input: &[u64]) -> u64 {
+pub fn part1(input: &[i64]) -> i64 {
     for v1 in input {
-        for v2 in input {
-            if v1 + v2 == 2020 && v1 != v2 {
-                return v1 * v2;
-            }
+        let other = 2020 - v1;
+        if let Some(ans) = input.iter().find(|&&x| x == other) {
+            return ans * v1;
         }
     }
 
@@ -21,13 +20,12 @@ pub fn part1(input: &[u64]) -> u64 {
 }
 
 #[aoc(day1, part2)]
-pub fn part2(input: &[u64]) -> u64 {
+pub fn part2(input: &[i64]) -> i64 {
     for v1 in input {
         for v2 in input {
-            for v3 in input {
-                if v1 + v2 + v3 == 2020 && v1 != v2 && v1 != v3 && v2 != v3 {
-                    return v1 * v2 * v3;
-                }
+            let last = 2020 - v1 - v2;
+            if let Some(v3) = input.iter().find(|&&x| x == last) {
+                return v1 * v2 * v3;
             }
         }
     }

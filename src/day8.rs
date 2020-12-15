@@ -1,16 +1,10 @@
 use std::collections::HashSet;
 
-#[derive(Debug, PartialEq, Clone)]
-pub enum InstructionType {
-    Acc,
-    Jmp,
-    Nop,
-}
-
-#[derive(Debug, Clone)]
-pub struct Instruction {
-    inst: InstructionType,
-    num: i64,
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum Instruction {
+    Acc(i64),
+    Jmp(i64),
+    Nop(i64),
 }
 
 #[aoc_generator(day8)]
@@ -18,15 +12,14 @@ pub fn load_input(input: &str) -> Vec<Instruction> {
     let mut output = vec![];
     for line in input.lines() {
         let vals: Vec<_> = line.split_whitespace().collect();
-        let mut inst = InstructionType::Acc;
+        let num = vals[1].replace("+", "").parse().unwrap();
+        let mut inst = Instruction::Acc(num);
         match vals[0] {
-            "acc" => inst = InstructionType::Acc,
-            "jmp" => inst = InstructionType::Jmp,
-            "nop" => inst = InstructionType::Nop,
+            "acc" => inst = Instruction::Acc(num),
+            "jmp" => inst = Instruction::Jmp(num),
+            "nop" => inst = Instruction::Nop(num),
             _ => (),
         }
-        let num = vals[1].replace("+", "").parse().unwrap();
-        let inst = Instruction { inst, num };
         output.push(inst);
     }
     output
@@ -49,13 +42,13 @@ impl VM {
     }
 
     pub fn run(&mut self, inst: &Instruction) {
-        match inst.inst {
-            InstructionType::Acc => {
-                self.acc += inst.num;
+        match inst {
+            Instruction::Acc(num) => {
+                self.acc += num;
                 self.ptr += 1;
             }
-            InstructionType::Jmp => self.ptr += inst.num,
-            InstructionType::Nop => self.ptr += 1,
+            Instruction::Jmp(num) => self.ptr += num,
+            Instruction::Nop(_num) => self.ptr += 1,
         }
     }
 }
@@ -102,26 +95,24 @@ pub fn run_to_completion(input: &[Instruction]) -> Option<i64> {
 
 #[aoc(day8, part2)]
 pub fn part2(input: &[Instruction]) -> i64 {
-    // Try jmp -> nop
-    for i in 0..input.len() {
-        let mut input_clone: Vec<Instruction> = input.to_vec();
-        if input[i].inst == InstructionType::Jmp {
-            input_clone[i].inst = InstructionType::Nop;
+    let mut input_clone: Vec<Instruction> = input.to_vec();
+    for i in 0..input_clone.len() {
+        let old_value = input_clone[i];
+        match input_clone[i] {
+            Instruction::Jmp(num) => {
+                input_clone[i] = Instruction::Nop(num);
+            }
+            Instruction::Nop(num) => {
+                input_clone[i] = Instruction::Jmp(num);
+            }
+            _ => (),
         }
         if let Some(acc) = run_to_completion(&input_clone) {
             return acc;
         }
-    }
 
-    // Try nops -> jmp
-    for i in 0..input.len() {
-        let mut input_clone: Vec<Instruction> = input.to_vec();
-        if input[i].inst == InstructionType::Nop {
-            input_clone[i].inst = InstructionType::Jmp;
-        }
-        if let Some(acc) = run_to_completion(&input_clone) {
-            return acc;
-        }
+        // Put it back if not right...
+        input_clone[i] = old_value;
     }
 
     // Should never get here...
