@@ -26,34 +26,16 @@ pub fn load_input(input: &str) -> HashMap<(i64, i64, i64), State> {
 }
 
 pub fn get_neighbors(pos: &(i64, i64, i64)) -> Vec<(i64, i64, i64)> {
-    let dirs = vec![
-        (0, 0, 1),
-        (0, 0, -1),
-        (0, 1, 0),
-        (0, -1, 0),
-        (0, 1, 1),
-        (0, 1, -1),
-        (0, -1, 1),
-        (0, -1, -1),
-        (1, 0, 0),
-        (1, 0, 1),
-        (1, 0, -1),
-        (1, 1, 0),
-        (1, -1, 0),
-        (1, 1, 1),
-        (1, 1, -1),
-        (1, -1, 1),
-        (1, -1, -1),
-        (-1, 0, 0),
-        (-1, 0, 1),
-        (-1, 0, -1),
-        (-1, 1, 0),
-        (-1, -1, 0),
-        (-1, 1, 1),
-        (-1, 1, -1),
-        (-1, -1, 1),
-        (-1, -1, -1),
-    ];
+    let mut dirs = vec![];
+    for x in -1..2 {
+        for y in -1..2 {
+            for z in -1..2 {
+                dirs.push((x, y, z));
+            }
+        }
+    }
+
+    let dirs: Vec<(i64, i64, i64)> = dirs.iter().filter(|&&x| x != (0, 0, 0)).copied().collect();
 
     let mut output = vec![];
     for dir in dirs {
