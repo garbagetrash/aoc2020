@@ -1,4 +1,7 @@
-#[aoc_generator(dayN)]
+use std::collections::{HashMap, HashSet};
+use regex::Regex;
+
+#[aoc_generator(dayNN)]
 pub fn load_input(input: &str) -> Vec<u64> {
     let mut output = vec![];
     for line in input.lines() {
@@ -7,13 +10,13 @@ pub fn load_input(input: &str) -> Vec<u64> {
     output
 }
 
-#[aoc(dayN, part1)]
+#[aoc(dayNN, part1)]
 pub fn part1(input: &[u64]) -> u64 {
 
     0
 }
 
-#[aoc(dayN, part2)]
+#[aoc(dayNN, part2)]
 pub fn part2(input: &[u64]) -> u64 {
 
     0
@@ -26,14 +29,14 @@ mod test {
 
     #[test]
     fn test_part1() {
-        let input = read_to_string("input/01a.txt").unwrap();
+        let input = read_to_string("input/XXa.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part1(&input), 0);
     }
 
     #[test]
     fn test_part2() {
-        let input = read_to_string("input/01a.txt").unwrap();
+        let input = read_to_string("input/XXa.txt").unwrap();
         let input = load_input(&input);
         assert_eq!(part2(&input), 0);
     }
