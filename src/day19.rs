@@ -48,7 +48,6 @@ pub fn resolve_rule(rule: &mut Rule, rulemap: &HashMap<usize, Rule>) {
                     deps.push(c.unwrap().as_str().parse().unwrap());
                 }
             }
-            println!("deps: {:?}", deps);
 
             // If we have all deps, resolve them and calc a new Rule::Leaf!...
             // else just leave it alone for later.
@@ -69,8 +68,6 @@ pub fn resolve_rule(rule: &mut Rule, rulemap: &HashMap<usize, Rule>) {
             let leaves = parser(rule, rulemap);
 
             *rule = Rule::Leaf(leaves);
-
-            println!("Resolved rule: {:?}", *rule);
         },
     }
 }
@@ -81,10 +78,8 @@ pub fn parser(rule: &Rule, rulemap: &HashMap<usize, Rule>) -> Vec<String> {
             let re_single = Regex::new(r"^([0-9]+)$").unwrap();
 
             let mut output: Vec<String> = vec![];
-            println!("rule_string: {}", rule_string.to_string());
 
             for cap in re_single.captures_iter(rule_string) {
-                println!("Single regex tripped: {}", cap[0].to_string());
                 let num: usize = cap[1].parse().unwrap();
                 let rule = rulemap.get(&num).unwrap(); // Safe because we know it's in map
                 if let Rule::Leaf(value_vec) = rule {
@@ -103,7 +98,6 @@ pub fn parser(rule: &Rule, rulemap: &HashMap<usize, Rule>) -> Vec<String> {
             // Handle single or no ands
             let re_or = Regex::new(r"^([0-9]+) \| ([0-9]+)$").unwrap();
             for cap in re_or.captures_iter(rule_string) {
-                println!("Or regex tripped: {}", cap[0].to_string());
                 let num1: usize = cap[1].parse().unwrap();
                 let num2: usize = cap[2].parse().unwrap();
 
@@ -132,7 +126,6 @@ pub fn parser(rule: &Rule, rulemap: &HashMap<usize, Rule>) -> Vec<String> {
             // Resolve ands, return strings
             let re_and = Regex::new(r"([0-9]+) ([0-9]+)").unwrap();
             for cap in re_and.captures_iter(rule_string) {
-                println!("And regex tripped: {}", cap[0].to_string());
                 let num1: usize = cap[1].parse().unwrap();
                 let num2: usize = cap[2].parse().unwrap();
 
@@ -165,8 +158,6 @@ pub fn parser(rule: &Rule, rulemap: &HashMap<usize, Rule>) -> Vec<String> {
                 }
             }
 
-            println!("Parser Output: {:?}", output);
-
             return output;
         },
         Rule::Leaf(string_vec) => return string_vec.to_vec(),
@@ -179,19 +170,13 @@ pub fn part1(input: &(HashMap<usize, Rule>, Vec<String>)) -> u64 {
     let mut input_clone = input.0.clone();
     let test_vec = &input.1;
 
-    //let test = parser(input_clone.get(&94).unwrap(), &input_clone);
-    //let test = parser(input_clone.get(&56).unwrap(), &input_clone);
-    //println!("test: {:?}", test);
-
     for _ in 0..10 {
         let temp = input_clone.clone();
         for (k, v) in input_clone.iter_mut() {
             resolve_rule(v, &temp);
         }
-        println!("Rules: {:?}\n", input_clone);
     }
 
-    //println!("Rule 0: {:?}\n", input_clone.get(&0).unwrap());
     let rule0 = input_clone.get(&0).unwrap();
 
     let mut cntr = 0;
