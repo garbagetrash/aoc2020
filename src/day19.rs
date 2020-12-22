@@ -1,6 +1,5 @@
-use std::collections::{HashMap, HashSet};
 use regex::Regex;
-
+use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Clone)]
 pub struct Node {
@@ -21,7 +20,11 @@ pub fn load_input(input: &str) -> (HashMap<usize, Node>, Vec<String>) {
         for cap in re.captures_iter(line) {
             let id = cap[1].parse().unwrap();
             let rule_str = cap[2].to_string();
-            let node = Node { id: id, used_by: HashSet::new(), value: rule_str.trim_matches('\"').to_string() };
+            let node = Node {
+                id: id,
+                used_by: HashSet::new(),
+                value: rule_str.trim_matches('\"').to_string(),
+            };
             rgraph.insert(id, node);
         }
     }
@@ -35,7 +38,6 @@ pub fn load_input(input: &str) -> (HashMap<usize, Node>, Vec<String>) {
         // find all references to ID k.
         for (k2, v2) in rgraph_clone.iter() {
             for cap in renum.captures_iter(&v2.value) {
-
                 // Get k2 node dependencies to scan for k1
                 let mut deps = vec![];
                 for c in cap.iter().skip(1) {
@@ -65,7 +67,6 @@ pub struct Magic {
 }
 
 impl Magic {
-
     pub fn new(rgraph: HashMap<usize, Node>) -> Magic {
         Magic {
             idrepr: vec![],
@@ -89,7 +90,6 @@ impl Magic {
 
 #[aoc(day19, part1)]
 pub fn part1(input: &(HashMap<usize, Node>, Vec<String>)) -> u64 {
-
     let test_vec = &input.1;
 
     let mut cntr = 0;
@@ -114,7 +114,6 @@ pub fn part1(input: &(HashMap<usize, Node>, Vec<String>)) -> u64 {
 
 #[aoc(day19, part2)]
 pub fn part2(input: &(HashMap<usize, Node>, Vec<String>)) -> u64 {
-
     0
 }
 
