@@ -1,10 +1,4 @@
-use std::collections::{HashMap, HashSet};
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum Color {
-    White,
-    Black,
-}
+use std::collections::HashSet;
 
 // Coordinate system references:
 // https://www.redblobgames.com/grids/hexagons/#coordinates
@@ -12,8 +6,8 @@ pub enum Color {
 // In particular the Axial Coordinates he describes
 
 #[aoc_generator(day24)]
-pub fn load_input(input: &str) -> HashMap<(i64, i64), Color> {
-    let mut output = HashMap::new();
+pub fn load_input(input: &str) -> HashSet<(i64, i64)> {
+    let mut output = HashSet::new();
     for line in input.lines() {
         let mut q = 0;
         let mut r = 0;
@@ -48,28 +42,18 @@ pub fn load_input(input: &str) -> HashMap<(i64, i64), Color> {
             }
         }
 
-        if let Some(tile) = output.get_mut(&(q, r)) {
-            if *tile == Color::White {
-                *tile = Color::Black;
-            } else {
-                *tile = Color::White;
-            }
+        if output.contains(&(q, r)) {
+            output.remove(&(q, r));
         } else {
-            output.insert((q, r), Color::Black);
+            output.insert((q, r));
         }
     }
     output
 }
 
 #[aoc(day24, part1)]
-pub fn part1(input: &HashMap<(i64, i64), Color>) -> u64 {
-    let mut cntr = 0;
-    for tile in input.values() {
-        if *tile == Color::Black {
-            cntr += 1;
-        }
-    }
-    cntr
+pub fn part1(input: &HashSet<(i64, i64)>) -> usize {
+    input.len()
 }
 
 pub fn neighbors(pos: &(i64, i64)) -> Vec<(i64, i64)> {
@@ -83,61 +67,47 @@ pub fn neighbors(pos: &(i64, i64)) -> Vec<(i64, i64)> {
     output
 }
 
-pub fn count_black_neighbors(pos: &(i64, i64), floor: &HashMap<(i64, i64), Color>) -> usize {
+pub fn count_black_neighbors(pos: &(i64, i64), floor: &HashSet<(i64, i64)>) -> usize {
     let neighbors = neighbors(pos);
 
     let mut cntr = 0;
     for n in neighbors {
-        if let Some(tile) = floor.get(&n) {
-            if *tile == Color::Black {
-                cntr += 1;
-            }
+        if floor.contains(&n) {
+            cntr += 1;
         }
     }
 
     cntr
 }
 
-pub fn day(floor: &HashMap<(i64, i64), Color>) -> HashMap<(i64, i64), Color> {
+pub fn day(floor: &HashSet<(i64, i64)>) -> HashSet<(i64, i64)> {
     let mut consider_tiles: HashSet<(i64, i64)> = HashSet::new();
-    for (k, v) in floor.iter() {
-        if *v == Color::Black {
-            // Any black tiles should be considered
-            consider_tiles.insert(*k);
+    for k in floor.iter() {
+        // Any black tiles should be considered
+        consider_tiles.insert(*k);
 
-            // Any tiles neighboring black tiles should be considered
-            let nset = neighbors(k);
-            for n in nset {
-                consider_tiles.insert(n);
-            }
+        // Any tiles neighboring black tiles should be considered
+        let nset = neighbors(k);
+        for n in nset {
+            consider_tiles.insert(n);
         }
-
-        // All that is left is white tiles completely neighbored by white tiles
-        // We can safely leave these alone.
     }
 
     // Now we have a set of tiles to consider
-    let mut new_floor: HashMap<(i64, i64), Color> = floor.clone();
+    let mut new_floor: HashSet<(i64, i64)> = floor.clone();
     for pos in consider_tiles.iter() {
         let bn = count_black_neighbors(&pos, &floor);
-        if let Some(tile) = floor.get(&pos) {
-            if *tile == Color::Black {
-                if bn == 0 || bn > 2 {
-                    if let Some(x) = new_floor.get_mut(&pos) {
-                        *x = Color::White;
-                    }
-                }
-            } else if bn == 2 {
-                if let Some(x) = new_floor.get_mut(&pos) {
-                    *x = Color::Black;
-                }
+        if floor.contains(&pos) {
+            if bn == 0 || bn > 2 {
+                // Flip from black to white via removal
+                new_floor.remove(&pos);
             }
         } else {
             // Not already in floor map, but still needs considered.  Must be
             // white.
             if bn == 2 {
-                // This will turn black now, needs added to map
-                new_floor.insert(*pos, Color::Black);
+                // This will turn black now, needs added to set
+                new_floor.insert(*pos);
             }
         }
     }
@@ -146,20 +116,13 @@ pub fn day(floor: &HashMap<(i64, i64), Color>) -> HashMap<(i64, i64), Color> {
 }
 
 #[aoc(day24, part2)]
-pub fn part2(input: &HashMap<(i64, i64), Color>) -> u64 {
+pub fn part2(input: &HashSet<(i64, i64)>) -> usize {
     let mut floor = input.clone();
     for _ in 0..100 {
         let new_floor = day(&floor);
         floor = new_floor;
     }
-
-    let mut cntr = 0;
-    for tile in floor.values() {
-        if *tile == Color::Black {
-            cntr += 1;
-        }
-    }
-    cntr
+    floor.len()
 }
 
 #[cfg(test)]
