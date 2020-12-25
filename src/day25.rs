@@ -37,10 +37,8 @@ pub fn part1(input: &[u64]) -> u64 {
     //let card_size = find_loop_size(7, input[0]);
     let door_size = find_loop_size(7, input[1]);
 
-    let output1 = transform_n_times(input[0], door_size);
+    transform_n_times(input[0], door_size)
     //let output2 = transform_n_times(input[1], card_size);
-
-    output1
 }
 
 #[aoc(day25, part2)]
