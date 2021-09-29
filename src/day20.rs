@@ -1,12 +1,15 @@
 use regex::Regex;
+use std::cmp;
 use std::collections::{HashMap, HashSet};
 use num::integer::Roots;
 
 #[derive(Debug)]
 pub struct Tile {
-    id: usize,
+    id: u64,
     pixels: [[char; 10]; 10],
-    edges: [u8; 4],
+
+    // N, E, S, W
+    edges: [u16; 4],
 }
 
 #[aoc_generator(day20)]
@@ -36,67 +39,44 @@ pub fn load_input(input: &str) -> Vec<Tile> {
 
         let mut edges = [0; 4];
         // Top row
-        let mut val = 0_u8;
-        for i in 0..10 {
-            match pixels[0][i] {
-                '#' => val += 2_u8.pow(i as u32),
-                _ => (),
-            };
-        }
-
-        // We arbitrarily decide we'll use the lesser valued flip of the
-        // edge just so we have some repeatable rule.
-        let other = flip_number(&val);
-        if other < val {
-            edges[0] = other;
-        } else {
-            edges[0] = val;
-        }
-
-        // Right column
-        let mut val = 0_u8;
-        for i in 0..10 {
-            match pixels[i][9] {
-                '#' => val += 2_u8.pow(i as u32),
-                _ => (),
-            };
-        }
-        let other = flip_number(&val);
-        if other < val {
-            edges[1] = other;
-        } else {
-            edges[1] = val;
-        }
-
-        // Bottom row
-        let mut val = 0_u8;
-        for i in 0..10 {
-            match pixels[9][i] {
-                '#' => val += 2_u8.pow(i as u32),
-                _ => (),
-            };
-        }
-        let other = flip_number(&val);
-        if other < val {
-            edges[2] = other;
-        } else {
-            edges[2] = val;
-        }
-
-        // Left column
-        let mut val = 0_u8;
+        let mut val = 0_u16;
         for i in 0..10 {
             match pixels[i][0] {
-                '#' => val += 2_u8.pow(i as u32),
+                '#' => val += 2_u16.pow((9 - i) as u32),
                 _ => (),
             };
         }
-        let other = flip_number(&val);
-        if other < val {
-            edges[3] = other;
-        } else {
-            edges[3] = val;
+        edges[0] = val;
+
+        // Right column
+        let mut val = 0_u16;
+        for i in 0..10 {
+            match pixels[9][i] {
+                '#' => val += 2_u16.pow((9 - i) as u32),
+                _ => (),
+            };
         }
+        edges[1] = val;
+
+        // Bottom row
+        let mut val = 0_u16;
+        for i in 0..10 {
+            match pixels[i][9] {
+                '#' => val += 2_u16.pow((9 - i) as u32),
+                _ => (),
+            };
+        }
+        edges[2] = val;
+
+        // Left column
+        let mut val = 0_u16;
+        for i in 0..10 {
+            match pixels[0][i] {
+                '#' => val += 2_u16.pow((9 - i) as u32),
+                _ => (),
+            };
+        }
+        edges[3] = val;
 
         output.push(Tile {
             id: id,
@@ -107,70 +87,88 @@ pub fn load_input(input: &str) -> Vec<Tile> {
     output
 }
 
-pub fn flip_number(num: &u8) -> u8 {
-    let nstr = format!("{:08b}", num);
-    let mut bitvec: Vec<u8> = nstr.chars().map(|c| c.to_digit(10).unwrap() as u8).collect();
+pub fn flip_number(num: &u16) -> u16 {
+    let nstr = format!("{:010b}", num);
+    let mut bitvec: Vec<u16> = nstr.chars().map(|c| c.to_digit(10).unwrap() as u16).collect();
     bitvec.reverse();
     let bitstr = bitvec.iter().map(|b| b.to_string()).fold("".to_string(), |mut acc, b| {
         acc.push_str(&b);
         return acc;
     });
-    u8::from_str_radix(&bitstr, 2).unwrap()
+    u16::from_str_radix(&bitstr, 2).unwrap()
+}
+
+// Returns IDs of tiles that can attach to reference tile
+pub fn find_neighbors(ref_tile: &Tile, tileset: &[Tile]) -> Vec<u64> {
+    let mut output = vec![];
+    for edge in ref_tile.edges {
+        for candidate in tileset {
+            for e2 in candidate.edges {
+                if e2 == edge {
+                    // This candidate can connect to our ref_tile
+                    output.push(candidate.id);
+                }
+            }
+        }
+    }
+    output
+}
+
+// Return tile IDs from the tileset that have the passed reference edge.
+pub fn get_tiles_with_edge(ref_edge: u16, tileset: &[Tile]) -> HashSet<u64> {
+    let ref_other = flip_number(&ref_edge);
+
+    let mut output = HashSet::new();
+    for tile in tileset {
+        for edge in tile.edges {
+            if edge == ref_edge || edge == ref_other {
+                output.insert(tile.id);
+            }
+        }
+    }
+    output
 }
 
 #[aoc(day20, part1)]
 pub fn part1(input: &[Tile]) -> u64 {
 
-    println!("num tiles: {}", input.len());
     let edge_len = input.len().sqrt();
-    println!("edge length: {}", edge_len);
 
-    let testnum = 15_u8;
-    let newnum = flip_number(&testnum);
-    println!("newnum: {}", newnum);
-
-    // Border edges don't align with any other tile, meaning we can id corners
-    // by looking for pieces with 2 unique border edges... don't have to solve
-    // puzzle yet!
-    let mut edge_cnt = HashMap::new();
+    // Get all the unique edges
+    let mut edge_set = HashSet::new();
     for tile in input {
         for edge in &tile.edges {
-            // We don't have to worry about edge flips since we normalized them
-            // in the input parsing section
-            if let Some(e) = edge_cnt.get_mut(&edge) {
-                *e += 1;
+            let other = flip_number(edge);
+            let key = cmp::min(*edge, other);
+            edge_set.insert(key);
+        }
+    }
+
+    // Now get all Tiles that have a given edge
+    let mut edge_tile_map = HashMap::new();
+    let mut unique_edge_cnt = HashMap::<u64, u64>::new();
+    for edge in edge_set.iter() {
+        let tiles = get_tiles_with_edge(*edge, input);
+
+        if tiles.len() == 1 {
+            if let Some(cnt) = unique_edge_cnt.get_mut(tiles.iter().next().unwrap()) {
+                *cnt += 1;
             } else {
-                edge_cnt.insert(edge, 1);
+                unique_edge_cnt.insert(*tiles.iter().next().unwrap(), 1);
             }
         }
+        edge_tile_map.insert(edge, tiles);
     }
 
-    for (k, v) in edge_cnt.iter() {
-        if v == &1 {
-            println!("Edge only seen once, _must_ be an outside border: {:?}", k);
-        } else if v % 2 == 1 {
-            println!("Edge seen odd number of times, must be an outside border at least once: {:?}", k);
+    let mut corners: Vec<u64> = vec![];
+    for (tile_id, cnt) in unique_edge_cnt.iter() {
+        if *cnt > 1 {
+            // This tile has more than 1 unique edge, it must be a corner.
+            corners.push(*tile_id);
         }
     }
 
-    let mut mult_vec = vec![];
-    for tile in input {
-        let mut unique_edge_cntr = 0;
-        for edge in &tile.edges {
-            if *edge_cnt.get(&edge).unwrap() % 2 == 1 {
-                // We have either a side or corner piece...
-                unique_edge_cntr += 1;
-            }
-        }
-        if unique_edge_cntr >= 2 {
-            // Must be a corner!
-            mult_vec.push(tile.id);
-        }
-    }
-
-    println!("{:?}", edge_cnt);
-    println!("{:?}", mult_vec);
-    mult_vec.iter().fold(1, |acc, x| acc * *x as u64)
+    corners.iter().product()
 }
 
 #[aoc(day20, part2)]
@@ -182,6 +180,21 @@ pub fn part2(input: &[Tile]) -> u64 {
 mod test {
     use super::*;
     use std::fs::read_to_string;
+
+    #[test]
+    fn test_flip_number() {
+        let num: u16 = 832;
+        let other = flip_number(&num);
+        assert_eq!(other, 11);
+
+        let num: u16 = 241;
+        let other = flip_number(&num);
+        assert_eq!(other, 572);
+
+        let num: u16 = 572;
+        let other = flip_number(&num);
+        assert_eq!(other, 241);
+    }
 
     #[test]
     fn test_part1() {
