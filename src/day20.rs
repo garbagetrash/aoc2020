@@ -3,7 +3,7 @@ use std::cmp;
 use std::collections::{HashMap, HashSet};
 use num::integer::Roots;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Tile {
     id: u64,
     pixels: [[char; 10]; 10],
@@ -129,14 +129,12 @@ pub fn get_tiles_with_edge(ref_edge: u16, tileset: &[Tile]) -> HashSet<u64> {
     output
 }
 
-#[aoc(day20, part1)]
-pub fn part1(input: &[Tile]) -> u64 {
-
-    let edge_len = input.len().sqrt();
+pub fn get_corners(tileset: &[Tile]) -> Vec<u64> {
+    let edge_len = tileset.len().sqrt();
 
     // Get all the unique edges
     let mut edge_set = HashSet::new();
-    for tile in input {
+    for tile in tileset {
         for edge in &tile.edges {
             let other = flip_number(edge);
             let key = cmp::min(*edge, other);
@@ -148,7 +146,7 @@ pub fn part1(input: &[Tile]) -> u64 {
     let mut edge_tile_map = HashMap::new();
     let mut unique_edge_cnt = HashMap::<u64, u64>::new();
     for edge in edge_set.iter() {
-        let tiles = get_tiles_with_edge(*edge, input);
+        let tiles = get_tiles_with_edge(*edge, tileset);
 
         if tiles.len() == 1 {
             if let Some(cnt) = unique_edge_cnt.get_mut(tiles.iter().next().unwrap()) {
@@ -168,6 +166,64 @@ pub fn part1(input: &[Tile]) -> u64 {
         }
     }
 
+    corners
+}
+
+pub fn get_by_id(id: u64, tileset: &[Tile]) -> Option<Tile> {
+    for tile in tileset {
+        if tile.id == id {
+            return Some(tile.clone());
+        }
+    }
+
+    // Should never get here
+    None
+}
+
+pub fn rotate_edges(edges: &[u16; 4], n_rot: usize) -> [u16; 4] {
+    let mut output = [0_u16; 4];
+    for i in 0..4 {
+        output[i] = edges[(n_rot + i) % 4];
+    }
+    output
+}
+
+// flips edges over the horizontal
+pub fn flip_edges(edges: &[u16; 4]) -> [u16; 4] {
+    [edges[2], edges[1], edges[0], edges[3]]
+}
+
+pub fn solve_puzzle(tileset: &[Tile]) -> Vec<Vec<u64>> {
+    let corners = get_corners(tileset);
+
+    // Pick first corner, let that be upper left
+    let mut ref_corner = get_by_id(corners[0], tileset).unwrap();
+
+
+    let edge_len = tileset.len().sqrt();
+
+    let mut output: Vec<Vec<u64>> = vec![];
+    for i in 0..edge_len {
+        let mut row = vec![];
+        for j in 0..edge_len {
+            if i == 0 && j == 0 {
+                row.push(ref_corner.id);
+            }
+
+            if j > 0 {
+                //
+            }
+        }
+        output.push(row);
+    }
+
+    output
+}
+
+#[aoc(day20, part1)]
+pub fn part1(input: &[Tile]) -> u64 {
+
+    let corners = get_corners(input);
     corners.iter().product()
 }
 
